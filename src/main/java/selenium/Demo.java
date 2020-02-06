@@ -27,4 +27,16 @@ public class Demo {
     public void closeBrowser() {
         driver.close();
     }
+
+    // for facebook
+    private void login() {
+        driver.findElement(By.id("email")).sendKeys("email");
+        driver.findElement(By.id("pass")).sendKeys("pass");
+        driver.findElement(By.id("loginbutton")).click();
+        //.submit(); //enter
+
+        WebElement userName = driver.findElement(By.xpath("//*[@id=\"u_0_a\"]/div[1]/div[1]/div/a/span/span"));
+        //driver.switchTo().activeElement();
+        System.out.println(userName.getText());
+    }
 }
