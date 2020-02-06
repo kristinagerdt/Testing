@@ -35,8 +35,8 @@ public class DemoTest {
     public void testUrlFacebookInvokeBrowserGetTagText() {
         url = "https://www.facebook.com/";
         test.invokeBrowser(url);
-        String h2Value = test.getTagText("//*[@id=\"content\"]/div/div/div/div/div[1]/div/div");
-        System.out.println(h2Value);
+        String tagText = test.getTagText("//*[@id=\"content\"]/div/div/div/div/div[1]/div/div");
+        System.out.println(tagText);
         test.closeBrowser();
     }
 }
