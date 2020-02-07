@@ -1,4 +1,4 @@
-package selenium.gitHub;
+package testNG.gitHub;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;

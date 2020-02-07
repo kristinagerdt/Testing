@@ -1,4 +1,4 @@
-package text;
+package junit.text;
 
 import org.junit.Test;
 

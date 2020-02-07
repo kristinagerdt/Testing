@@ -1,4 +1,4 @@
-package isbn;
+package junit.isbn;
 
 import org.junit.Test;
 

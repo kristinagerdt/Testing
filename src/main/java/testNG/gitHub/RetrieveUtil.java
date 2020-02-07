@@ -1,4 +1,4 @@
-package selenium.gitHub;
+package testNG.gitHub;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

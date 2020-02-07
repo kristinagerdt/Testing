@@ -1,4 +1,4 @@
-package bank;
+package testNG.bank;
 
 public class Account {
     private String iban;

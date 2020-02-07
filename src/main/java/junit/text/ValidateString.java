@@ -1,4 +1,4 @@
-package text;
+package junit.text;
 
 import java.util.Arrays;
 

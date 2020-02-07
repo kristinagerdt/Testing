@@ -1,4 +1,4 @@
-package selenium.gitHub;
+package testNG.gitHub;
 
 public class User {
     private String login;

@@ -1,4 +1,4 @@
-package isbn;
+package junit.isbn;
 
 public class Validator {
     private static final int SHORT_ISBN = 10;
