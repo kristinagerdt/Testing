@@ -17,7 +17,7 @@ public class Forecast {
 
     @Override
     public String toString() {
-        return "Forecast{consolidatedWeather=" + Arrays.toString(consolidatedWeather) + '}';
+        return "Forecast{ConsolidatedWeather=" + Arrays.toString(consolidatedWeather) + '}';
     }
 }
 

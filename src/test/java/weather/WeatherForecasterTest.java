@@ -1,70 +1,74 @@
 package weather;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import weather.entity.Forecast;
 import weather.entity.Location;
-import weather.exception.ForecastNotFoundException;
-import weather.exception.InvalidLocationException;
 
+import java.io.IOException;
 import java.util.Optional;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class WeatherForecasterTest {
+    private ObjectMapper mapper;
+    private DataSource dataSource;
     private WeatherForecaster weatherForecaster;
-    private DataSource dataSource = Mockito.mock(DataSource.class);
 
     @Before
     public void setUp() {
-        weatherForecaster = new WeatherForecaster(dataSource);
+        mapper = new ObjectMapper();
+        dataSource = Mockito.mock(DataSource.class);
+        weatherForecaster = new WeatherForecaster(dataSource, mapper);
     }
 
     @Test
-    public void testLondonGetLocationByCity() throws Exception {
-        when(dataSource.getLocationString("London"))
-                .thenReturn(Optional.of(LOCATION));
-        Location location = weatherForecaster.getLocationByCity("London");
-        Assert.assertEquals("woeid", "44418", location.getWoeid());
+    public void testLondonGetLocationByCity() throws IOException {
+        when(dataSource.getLocationString("London")).thenReturn(LOCATION);
+        Optional<Location> location = weatherForecaster.getLocationByCity("London");
+        location.ifPresent(l -> assertEquals("44418", l.getWoeid()));
     }
 
-    @Test(expected = InvalidLocationException.class)
-    public void testEmptyStringGetLocationByCity() throws Exception {
+    @Test
+    public void testNonExistentCityGetLocationByCity() throws IOException {
+        when(dataSource.getLocationString("1")).thenReturn("[]");
+        Optional<Location> location = weatherForecaster.getLocationByCity("1");
+        assertEquals(Optional.empty(), location);
+    }
+
+    @Test(expected = IOException.class) // 403 Error
+    public void testEmptyStringGetLocationByCity() throws IOException {
+        when(dataSource.getLocationString("")).thenThrow(new IOException());
         weatherForecaster.getLocationByCity("");
     }
 
-    @Test(expected = InvalidLocationException.class)
-    public void testNotExistCityGetLocationByCity() throws Exception {
-        Location location = weatherForecaster.getLocationByCity("1");
-        Assert.assertNull(location);
-    }
-
     @Test
-    public void testGetForecastByWoeid() throws Exception {
-        when(dataSource.getForecastString("44418"))
-                .thenReturn(Optional.of(FORECAST));
+    public void testLondonGetForecastByWoeid() throws IOException {
+        when(dataSource.getForecastString("44418")).thenReturn(FORECAST);
         Forecast forecast = weatherForecaster.getForecastByWoeid("44418");
-        Assert.assertTrue("results are not empty", forecast.getConsolidatedWeather().length > 0);
+        Assert.assertTrue(forecast.getConsolidatedWeather().length > 0);
     }
 
+    @Test(expected = IOException.class) // 404 Error
+    public void testNonExistentWoeidGetForecastByWoeid() throws IOException {
+        when(dataSource.getForecastString("4441")).thenThrow(new IOException());
+        weatherForecaster.getForecastByWoeid("4441");
+    }
 
-    @Test(expected = ForecastNotFoundException.class)
-    public void testEmptyStringGetWeatherForecastByWoeid() throws Exception {
+    @Test(expected = IOException.class) // 404 Error
+    public void testEmptyStringGetForecastByWoeid() throws IOException {
+        when(dataSource.getForecastString("")).thenThrow(new IOException());
         weatherForecaster.getForecastByWoeid("");
     }
 
-    @Test(expected = ForecastNotFoundException.class)
-    public void testNotExistWoeidGetWeatherForecastByWoeid() throws Exception {
-        Forecast forecast = weatherForecaster.getForecastByWoeid("4441");
-        Assert.assertNull(forecast);
-    }
-
     @Test
-    public void testGetWeatherForecastByCity() throws Exception {
-        when(dataSource.getLocationString("London")).thenReturn(Optional.of(LOCATION));
-        when(dataSource.getForecastString("44418")).thenReturn(Optional.of(FORECAST));
+    public void testLondonTemperatureByCity() throws Exception {
+        when(dataSource.getLocationString("London")).thenReturn(LOCATION);
+        when(dataSource.getForecastString("44418")).thenReturn(FORECAST);
         double actual = weatherForecaster.getTemperatureByCity("London");
         Assert.assertEquals(13.45d, actual, 0.001);
     }

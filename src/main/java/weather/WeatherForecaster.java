@@ -4,44 +4,41 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import weather.entity.Forecast;
 import weather.entity.Location;
-import weather.exception.ForecastNotFoundException;
-import weather.exception.InvalidLocationException;
 
 import java.io.IOException;
 import java.util.Optional;
 
 public class WeatherForecaster {
     private DataSource dataSource;
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper;
 
-    public WeatherForecaster(DataSource dataSource) {
+    public WeatherForecaster(DataSource dataSource, ObjectMapper mapper) {
         this.dataSource = dataSource;
+        this.mapper = mapper;
         mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         // the_temp -> theTemp
     }
 
-    public double getTemperatureByCity(String city) throws Exception {
-        Location location = getLocationByCity(city);
-        Forecast forecast = getForecastByWoeid(location.getWoeid());
-        return forecast.getConsolidatedWeather()[0].getTheTemp();
+    public double getTemperatureByCity(String city) throws IOException {
+        Optional<Location> optionalLocation = getLocationByCity(city);
+        if (optionalLocation.isPresent()) {
+            Location location = optionalLocation.get();
+            Forecast forecast = getForecastByWoeid(location.getWoeid());
+            return forecast.getConsolidatedWeather()[0].getTheTemp();
+        }
+        return 0.0;
     }
 
-    public Location getLocationByCity(String city) throws IOException, InvalidLocationException {
-        Optional<String> locationString = dataSource.getLocationString(city);
-        if (locationString.isPresent() && !locationString.get().equals("[]")) {
-            Location[] locations = mapper.readValue(locationString.get(), Location[].class);
-            return locations[0];
-        } else {
-            throw new InvalidLocationException("No location for city \'" + city + "\'");
-        }
+    public Optional<Location> getLocationByCity(String city) throws IOException {
+        String locationString = dataSource.getLocationString(city);
+        Location[] locations = mapper.readValue(locationString, Location[].class);
+        if (locations.length != 0) return Optional.of(locations[0]);
+        return Optional.empty();
     }
 
-    public Forecast getForecastByWoeid(String woeid) throws IOException, ForecastNotFoundException {
-        Optional<String> forecastString = dataSource.getForecastString(woeid);
-        if (forecastString.isPresent()) {
-            return mapper.readValue(forecastString.get(), Forecast.class);
-        } else {
-            throw new ForecastNotFoundException("No forecast for woeid \'" + woeid + "\'");
-        }
+    public Forecast getForecastByWoeid(String woeid) throws IOException {
+        String forecastString = dataSource.getForecastString(woeid);
+        Forecast forecast = mapper.readValue(forecastString, Forecast.class);
+        return forecast;
     }
 }

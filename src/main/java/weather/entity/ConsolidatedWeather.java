@@ -19,7 +19,7 @@ public class ConsolidatedWeather {
 
     @Override
     public String toString() {
-        return "ConsolidatedWeather{theTemp=" + theTemp + '}';
+        return "CW{theTemp=" + theTemp + '}';
     }
 }
 

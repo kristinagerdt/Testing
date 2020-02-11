@@ -15,20 +15,28 @@ public class DataSource {
 
     private URL searchUrl;
 
-    public Optional<String> getLocationString(String parameter) throws IOException {
-        Optional<String> result = Optional.empty();
+    public String getLocationString(String parameter) throws IOException {
+        String result = "[]";
         searchUrl = new URL(BASE_SEARCH_URL + "?" + QUERY_PARAM + "=" + parameter);
         Optional<InputStream> inputStream = getInputStream();
         if (inputStream.isPresent()) {
-            result = getStringFromInputStream(inputStream.get());
+            Optional<String> stringFromInputStream = getStringFromInputStream(inputStream.get());
+            if (stringFromInputStream.isPresent()) {
+                result = stringFromInputStream.get();
+            }
         }
         return result;
     }
 
-    public Optional<String> getForecastString(String woeid) throws IOException {
+    public String getForecastString(String woeid) throws IOException {
+        String result = "";
         searchUrl = new URL(FORECAST_URL + woeid);
         Optional<InputStream> inputStream = getInputStream();
-        return inputStream.flatMap(DataSource::getStringFromInputStream);
+        Optional<String> stringFromInputStream = inputStream.flatMap(DataSource::getStringFromInputStream);
+        if (stringFromInputStream.isPresent()) {
+            result = stringFromInputStream.get();
+        }
+        return result;
     }
 
     private Optional<InputStream> getInputStream() throws IOException {
