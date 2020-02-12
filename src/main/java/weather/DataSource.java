@@ -15,7 +15,7 @@ public class DataSource {
 
     private URL searchUrl;
 
-    public String getLocationString(String parameter) throws IOException {
+    public String getLocationJsonAsString(String parameter) throws IOException {
         String result = "[]";
         searchUrl = new URL(BASE_SEARCH_URL + "?" + QUERY_PARAM + "=" + parameter);
         Optional<InputStream> inputStream = getInputStream();
@@ -28,7 +28,7 @@ public class DataSource {
         return result;
     }
 
-    public String getForecastString(String woeid) throws IOException {
+    public String getForecastJsonAsString(String woeid) throws IOException {
         String result = "";
         searchUrl = new URL(FORECAST_URL + woeid);
         Optional<InputStream> inputStream = getInputStream();

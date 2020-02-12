@@ -30,15 +30,14 @@ public class WeatherForecaster {
     }
 
     public Optional<Location> getLocationByCity(String city) throws IOException {
-        String locationString = dataSource.getLocationString(city);
+        String locationString = dataSource.getLocationJsonAsString(city);
         Location[] locations = mapper.readValue(locationString, Location[].class);
         if (locations.length != 0) return Optional.of(locations[0]);
         return Optional.empty();
     }
 
     public Forecast getForecastByWoeid(String woeid) throws IOException {
-        String forecastString = dataSource.getForecastString(woeid);
-        Forecast forecast = mapper.readValue(forecastString, Forecast.class);
-        return forecast;
+        String forecastString = dataSource.getForecastJsonAsString(woeid);
+        return mapper.readValue(forecastString, Forecast.class);
     }
 }
