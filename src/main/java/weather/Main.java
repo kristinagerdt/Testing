@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import weather.entity.Forecast;
 import weather.entity.Location;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Optional;
 
 public class Main {
@@ -24,29 +22,32 @@ public class Main {
             System.out.println("'1': Non existent city");
         }
 
-        try {
-            weatherForecaster.getLocationByCity("");
-        } catch (IOException e) {
-            System.out.println("Empty string: Error 403");
+        Optional<Location> emptyCity = weatherForecaster.getLocationByCity("");
+        if (emptyCity.isPresent()) {
+            System.out.println(emptyCity.get());
+        } else {
+            System.out.println("Empty city: Error 403");
         }
 
         System.out.println("\ngetForecastByWoeid():");
-        Forecast londonForecast = weatherForecaster.getForecastByWoeid("44418");
-        System.out.println(londonForecast);
+        Optional<Forecast> londonForecast = weatherForecaster.getForecastByWoeid("44418");
+        londonForecast.ifPresent(System.out::println);
 
-        try {
-            weatherForecaster.getForecastByWoeid("4441");
-        } catch (FileNotFoundException e) {
+        Optional<Forecast> nonExistentWoeid = weatherForecaster.getForecastByWoeid("4441");
+        if (nonExistentWoeid.isPresent()) {
+            System.out.println(nonExistentWoeid.get());
+        } else {
             System.out.println("Non existent woeid: Error 404");
         }
 
-        try {
-            weatherForecaster.getForecastByWoeid("");
-        } catch (FileNotFoundException e) {
-            System.out.println("Empty string: Error 404");
+        Optional<Forecast> emptyWoeid = weatherForecaster.getForecastByWoeid("");
+        if (emptyWoeid.isPresent()) {
+            System.out.println(emptyWoeid.get());
+        } else {
+            System.out.println("Empty woeid: Error 404");
         }
 
         double temperature = weatherForecaster.getTemperatureByCity("London");
-        System.out.println("Temperature in London is " + temperature);
+        System.out.println("\nTemperature in London is " + Math.round(temperature * 100.00) / 100.00);
     }
 }

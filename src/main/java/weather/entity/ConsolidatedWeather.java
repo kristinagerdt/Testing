@@ -19,7 +19,7 @@ public class ConsolidatedWeather {
 
     @Override
     public String toString() {
-        return "CW{theTemp=" + theTemp + '}';
+        return "CW{theTemp=" + Math.round(theTemp * 100.00) / 100.00 + '}';
     }
 }
 

@@ -20,24 +20,31 @@ public class WeatherForecaster {
     }
 
     public double getTemperatureByCity(String city) throws IOException {
-        Optional<Location> optionalLocation = getLocationByCity(city);
-        if (optionalLocation.isPresent()) {
-            Location location = optionalLocation.get();
-            Forecast forecast = getForecastByWoeid(location.getWoeid());
-            return forecast.getConsolidatedWeather()[0].getTheTemp();
+        Optional<Location> location = getLocationByCity(city);
+        if (location.isPresent()) {
+            Optional<Forecast> forecast = getForecastByWoeid(location.get().getWoeid());
+            if (forecast.isPresent()) {
+                return forecast.get().getConsolidatedWeather()[0].getTheTemp();
+            }
         }
         return 0.0;
     }
 
     public Optional<Location> getLocationByCity(String city) throws IOException {
-        String locationString = dataSource.getLocationJsonAsString(city);
-        Location[] locations = mapper.readValue(locationString, Location[].class);
-        if (locations.length != 0) return Optional.of(locations[0]);
+        Optional<String> locationString = dataSource.getLocationString(city);
+        if (locationString.isPresent()) {
+            Location[] locations = mapper.readValue(locationString.get(), Location[].class);
+            if (locations.length != 0) return Optional.of(locations[0]);
+        }
         return Optional.empty();
     }
 
-    public Forecast getForecastByWoeid(String woeid) throws IOException {
-        String forecastString = dataSource.getForecastJsonAsString(woeid);
-        return mapper.readValue(forecastString, Forecast.class);
+    public Optional<Forecast> getForecastByWoeid(String woeid) throws IOException {
+        Optional<String> forecastString = dataSource.getForecastString(woeid);
+        if (forecastString.isPresent()) {
+            Forecast forecast = mapper.readValue(forecastString.get(), Forecast.class);
+            return Optional.of(forecast);
+        }
+        return Optional.empty();
     }
 }

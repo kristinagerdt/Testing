@@ -15,33 +15,26 @@ public class DataSource {
 
     private URL searchUrl;
 
-    public String getLocationJsonAsString(String parameter) throws IOException {
-        String result = "[]";
+    public Optional<String> getLocationString(String parameter) throws IOException {
         searchUrl = new URL(BASE_SEARCH_URL + "?" + QUERY_PARAM + "=" + parameter);
         Optional<InputStream> inputStream = getInputStream();
-        if (inputStream.isPresent()) {
-            Optional<String> stringFromInputStream = getStringFromInputStream(inputStream.get());
-            if (stringFromInputStream.isPresent()) {
-                result = stringFromInputStream.get();
-            }
-        }
-        return result;
+        return inputStream.flatMap(DataSource::getStringFromInputStream);
     }
 
-    public String getForecastJsonAsString(String woeid) throws IOException {
-        String result = "";
+    public Optional<String> getForecastString(String woeid) throws IOException {
         searchUrl = new URL(FORECAST_URL + woeid);
         Optional<InputStream> inputStream = getInputStream();
-        Optional<String> stringFromInputStream = inputStream.flatMap(DataSource::getStringFromInputStream);
-        if (stringFromInputStream.isPresent()) {
-            result = stringFromInputStream.get();
-        }
-        return result;
+        return inputStream.flatMap(DataSource::getStringFromInputStream);
     }
 
-    private Optional<InputStream> getInputStream() throws IOException {
-        URLConnection connection = searchUrl.openConnection();
-        return Optional.of(connection.getInputStream());
+    private Optional<InputStream> getInputStream() {
+        try {
+            URLConnection connection = searchUrl.openConnection();
+            InputStream inputStream = connection.getInputStream();
+            return Optional.of(inputStream);
+        } catch (IOException e) {
+            return Optional.empty();
+        }
     }
 
     private static Optional<String> getStringFromInputStream(InputStream inputStream) {

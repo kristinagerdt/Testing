@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class WeatherForecasterTest {
@@ -28,47 +29,56 @@ public class WeatherForecasterTest {
 
     @Test
     public void testLondonGetLocationByCity() throws IOException {
-        when(dataSource.getLocationJsonAsString("London")).thenReturn(LOCATION);
+        when(dataSource.getLocationString("London")).thenReturn(Optional.of(LOCATION));
         Optional<Location> location = weatherForecaster.getLocationByCity("London");
         location.ifPresent(l -> assertEquals("44418", l.getWoeid()));
     }
 
     @Test
     public void testNonExistentCityGetLocationByCity() throws IOException {
-        when(dataSource.getLocationJsonAsString("1")).thenReturn("[]");
+        when(dataSource.getLocationString("1")).thenReturn(Optional.of("[]"));
         Optional<Location> location = weatherForecaster.getLocationByCity("1");
         assertEquals(Optional.empty(), location);
     }
 
-    @Test(expected = IOException.class) // 403 Error
+    @Test
     public void testEmptyStringGetLocationByCity() throws IOException {
-        when(dataSource.getLocationJsonAsString("")).thenThrow(new IOException());
-        weatherForecaster.getLocationByCity("");
+        when(dataSource.getLocationString("")).thenReturn(Optional.empty());
+        Optional<Location> location = weatherForecaster.getLocationByCity("");
+        assertEquals(Optional.empty(), location);
     }
+
+//    @Test(expected = IOException.class) // 403 Error
+//    public void testEmptyStringGetLocationByCity() throws IOException {
+//        when(dataSource.getLocationString("")).thenThrow(new IOException());
+//        weatherForecaster.getLocationByCity("");
+//    }
 
     @Test
     public void test44418GetForecastByWoeid() throws IOException {
-        when(dataSource.getForecastJsonAsString("44418")).thenReturn(FORECAST);
-        Forecast forecast = weatherForecaster.getForecastByWoeid("44418");
-        Assert.assertTrue(forecast.getConsolidatedWeather().length > 0);
+        when(dataSource.getForecastString("44418")).thenReturn(Optional.of(FORECAST));
+        Optional<Forecast> forecast = weatherForecaster.getForecastByWoeid("44418");
+        forecast.ifPresent(f -> assertTrue(forecast.get().getConsolidatedWeather().length > 0));
     }
 
-    @Test(expected = IOException.class) // 404 Error
+    @Test
     public void testNonExistentWoeidGetForecastByWoeid() throws IOException {
-        when(dataSource.getForecastJsonAsString("4441")).thenThrow(new IOException());
-        weatherForecaster.getForecastByWoeid("4441");
+        when(dataSource.getForecastString("4441")).thenReturn(Optional.empty());
+        Optional<Forecast> forecast = weatherForecaster.getForecastByWoeid("4441");
+        assertEquals(Optional.empty(), forecast);
     }
 
-    @Test(expected = IOException.class) // 404 Error
+    @Test
     public void testEmptyStringGetForecastByWoeid() throws IOException {
-        when(dataSource.getForecastJsonAsString("")).thenThrow(new IOException());
-        weatherForecaster.getForecastByWoeid("");
+        when(dataSource.getForecastString("")).thenReturn(Optional.empty());
+        Optional<Forecast> forecast = weatherForecaster.getForecastByWoeid("");
+        assertEquals(Optional.empty(), forecast);
     }
 
     @Test
     public void testLondonTemperatureByCity() throws Exception {
-        when(dataSource.getLocationJsonAsString("London")).thenReturn(LOCATION);
-        when(dataSource.getForecastJsonAsString("44418")).thenReturn(FORECAST);
+        when(dataSource.getLocationString("London")).thenReturn(Optional.of(LOCATION));
+        when(dataSource.getForecastString("44418")).thenReturn(Optional.of(FORECAST));
         double actual = weatherForecaster.getTemperatureByCity("London");
         Assert.assertEquals(13.45d, actual, 0.001);
     }
