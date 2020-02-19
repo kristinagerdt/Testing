@@ -38,7 +38,7 @@ public class UserTest {
     // https://github.com/settings/tokens create token: delete_repo
     private String token = "token";
 
-    @BeforeTest //before every test
+    @BeforeTest
     public void init() {
         client = HttpClientBuilder.create().build();
     }
