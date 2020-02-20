@@ -38,7 +38,7 @@ public class Main {
         User user = new User();
         user.setFirstName("Alex");
         user.setLastName("Smith");
-        user.setUserName("alex");
+        user.setUsername("alex");
         user.setPassword("123");
         user.setRepeatPassword("123");
         return user;
