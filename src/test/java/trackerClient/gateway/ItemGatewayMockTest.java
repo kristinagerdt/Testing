@@ -1,6 +1,7 @@
 package trackerClient.gateway;
 
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -10,15 +11,15 @@ import org.testng.annotations.Test;
 import trackerClient.model.Item;
 import trackerClient.model.Token;
 
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertEquals;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
-import static org.springframework.test.web.client.response.MockRestResponseCreators.withUnauthorizedRequest;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertFalse;
 
 public class ItemGatewayMockTest {
     private String createItemUrl = "http://localhost:8080/items/create";
@@ -47,7 +48,7 @@ public class ItemGatewayMockTest {
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Authorization", token.getToken()))
                 .andExpect(content().json(createItemJson))
-                .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(createItemJsonResponse, MediaType.APPLICATION_JSON));
 
         boolean isCreated = itemGateway.createItem(createItem(), token);
         assertTrue(isCreated);
@@ -55,11 +56,14 @@ public class ItemGatewayMockTest {
     }
 
     @Test
-    public void testFailedCreateItem() {
+    public void testUnauthorizedUserCreateItem() {
         server.expect(ExpectedCount.manyTimes(), requestTo(createItemUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().json(createItemJson))
-                .andRespond(withUnauthorizedRequest()); // Response 401 UNAUTHORIZED
+                .andRespond(withStatus(HttpStatus.FORBIDDEN)); // Response 403 FORBIDDEN
+        //.andRespond(withUnauthorizedRequest()); // Response 401 UNAUTHORIZED
+        //.andRespond(withBadRequest()); // Response 400 BAD_REQUEST
+        //.andRespond(withServerError()); // Response 500 INTERNAL_SERVER_ERROR
 
         boolean isCreated = itemGateway.createItem(createItem(), token);
         assertFalse(isCreated);
@@ -71,10 +75,21 @@ public class ItemGatewayMockTest {
         server.expect(ExpectedCount.manyTimes(), requestTo(allMyItemsUrl))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Authorization", token.getToken()))
-                .andRespond(withSuccess(allMyItemsJson, MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(allMyItemsJsonResponse, MediaType.APPLICATION_JSON));
 
         Item[] allMyItems = itemGateway.getAllMyItems(token);
         assertEquals(allMyItems.length, 1);
+        server.verify();
+    }
+
+    @Test
+    public void testUnauthorizedUserGetAllMyItems() {
+        server.expect(ExpectedCount.manyTimes(), requestTo(allMyItemsUrl))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN)); // Response 403 FORBIDDEN
+
+        Item[] allMyItems = itemGateway.getAllMyItems(token);
+        assertNull(allMyItems);
         server.verify();
     }
 
@@ -84,10 +99,22 @@ public class ItemGatewayMockTest {
         server.expect(ExpectedCount.manyTimes(), requestTo(myItemsByNameUrl + itemName))
                 .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Authorization", token.getToken()))
-                .andRespond(withSuccess(myItemsByNameJson, MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(myItemsByNameJsonResponse, MediaType.APPLICATION_JSON));
 
         Item[] myItemsByName = itemGateway.getMyItemsByName(itemName, token);
         assertEquals(myItemsByName.length, 1);
+        server.verify();
+    }
+
+    @Test
+    public void testUnauthorizedUserGetMyItemsByName() {
+        String itemName = "First";
+        server.expect(ExpectedCount.manyTimes(), requestTo(myItemsByNameUrl + itemName))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN)); // Response 403 FORBIDDEN
+
+        Item[] myItemsByName = itemGateway.getMyItemsByName(itemName, token);
+        assertNull(myItemsByName);
         server.verify();
     }
 
@@ -98,10 +125,23 @@ public class ItemGatewayMockTest {
                 .andExpect(method(HttpMethod.PUT))
                 .andExpect(header("Authorization", token.getToken()))
                 .andExpect(content().json(updateItemJson))
-                .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(updateItemJsonResponse, MediaType.APPLICATION_JSON));
 
         Item updatedItem = itemGateway.updateItem(id, "New first item", token);
-        //assertNotNull(updatedItem);
+        assertEquals(updatedItem.getItemName(), "New first item");
+        server.verify();
+    }
+
+    @Test
+    public void testUnauthorizedUserUpdateItem() {
+        String id = "1";
+        server.expect(ExpectedCount.manyTimes(), requestTo(updateItemUrl + id))
+                .andExpect(method(HttpMethod.PUT))
+                .andExpect(content().json(updateItemJson))
+                .andRespond(withStatus(HttpStatus.FORBIDDEN)); // Response 403 FORBIDDEN
+
+        Item updatedItem = itemGateway.updateItem(id, "New first item", token);
+        assertNull(updatedItem);
         server.verify();
     }
 
@@ -112,12 +152,21 @@ public class ItemGatewayMockTest {
         return item;
     }
 
+    // Request
     static String createItemJson = "{\"itemName\":\"First item\",\"itemType\":\"Task\"}";
-    static String allMyItemsJson = "[{\"id\": 1,\"itemName\": \"First item\", \"itemType\": \"Task\"," +
-            "\"itemStatus\": \"To Do\",\"createdDate\": \"2020-02-19T21:23:24.065\"," +
-            "\"createdBy\": \"w\"}]";
-    static String myItemsByNameJson = "[{\"id\": 1,\"itemName\": \"First item\", \"itemType\": \"Task\"," +
-            "\"itemStatus\": \"To Do\",\"createdDate\": \"2020-02-19T21:23:24.065\"," +
-            "\"createdBy\": \"w\"}]";
     static String updateItemJson = "{\"itemName\":\"New first item\",\"itemType\":\"Task\"}";
+
+    // Response
+    static String createItemJsonResponse = "{\"id\": 1,\"itemName\": \"First item\",\"itemType\": \"Task\"," +
+            "\"itemStatus\": \"To Do\",\"createdDate\": \"2020-02-19T21:23:24.065\"," +
+            "\"createdBy\": \"alex\"}";
+    static String allMyItemsJsonResponse = "[{\"id\": 1,\"itemName\": \"First item\", \"itemType\": \"Task\"," +
+            "\"itemStatus\": \"To Do\",\"createdDate\": \"2020-02-19T21:23:24.065\"," +
+            "\"createdBy\": \"alex\"}]";
+    static String myItemsByNameJsonResponse = "[{\"id\": 1,\"itemName\": \"First item\", \"itemType\": \"Task\"," +
+            "\"itemStatus\": \"To Do\",\"createdDate\": \"2020-02-19T21:23:24.065\"," +
+            "\"createdBy\": \"alex\"}]";
+    static String updateItemJsonResponse = "{\"id\": 1,\"itemName\": \"New first item\",\"itemType\": \"Task\"," +
+            "\"itemStatus\": \"To Do\",\"createdDate\": \"2020-02-19T21:24:24.065\"," +
+            "\"createdBy\": \"alex\"}";
 }

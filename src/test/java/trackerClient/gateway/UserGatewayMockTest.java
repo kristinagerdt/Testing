@@ -26,7 +26,7 @@ public class UserGatewayMockTest {
     private String loginUserUrl = "http://localhost:8080/user/login";
 
     private RestTemplate restTemplate;
-    private MockRestServiceServer server;
+    private MockRestServiceServer server; // Mock
     private UserGateway userGateway;
     private User user;
 
@@ -48,7 +48,7 @@ public class UserGatewayMockTest {
 
         boolean isRegistered = userGateway.registerUser(user);
         assertTrue(isRegistered);
-        server.verify();
+        server.verify(); // check if this Mock was called
     }
 
     @Test
@@ -67,17 +67,17 @@ public class UserGatewayMockTest {
         server.expect(ExpectedCount.manyTimes(), requestTo(loginUserUrl))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(content().json(loginUserJson))
-                .andRespond(withSuccess(tokenJson, MediaType.APPLICATION_JSON));
+                .andRespond(withSuccess(tokenJsonResponse, MediaType.APPLICATION_JSON));
 
         Token token = userGateway.loginUser(user);
         assertNotEquals(token.getToken(), "");
     }
 
     @Test
-    public void testFailedLoginUser() {
+    public void testNonexistentLoginUser() {
         server.expect(ExpectedCount.manyTimes(), requestTo(loginUserUrl))
                 .andExpect(method(HttpMethod.POST))
-                .andExpect(content().json(loginUserJson))
+                .andExpect(content().json(loginNonexistentUserJson))
                 .andRespond(withUnauthorizedRequest()); // Response 401 UNAUTHORIZED
 
         Token token = userGateway.loginUser(createUser());
@@ -95,8 +95,12 @@ public class UserGatewayMockTest {
         return user;
     }
 
+    // Request
     static String registerUserJson = "{\"firstName\":\"Alex\", \"lastName\":\"Smith\", \"password\":\"123\", " +
             "\"repeatPassword\":\"123\", \"username\":\"alex\"}";
     static String loginUserJson = "{ \"password\":\"123\", \"username\":\"alex\"}";
-    static String tokenJson = "{\"token\":\"76d3bcfe-55f9-4110-9dd0-4fba27c1b26d\"}";
+    static String loginNonexistentUserJson = "{ \"password\":\"333\", \"username\":\"max\"}";
+
+    // Response Body
+    static String tokenJsonResponse = "{\"token\":\"76d3bcfe-55f9-4110-9dd0-4fba27c1b26d\"}";
 }
