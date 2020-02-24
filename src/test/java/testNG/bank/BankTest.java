@@ -11,6 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.Assert.assertEquals;
+//@BeforeSuite	annotated method will run before the execution of all the test methods in the suite.
+//@BeforeTest	annotated method will be executed before the execution of all the test methods of available classes belonging to that folder.
+//@BeforeClass	annotated method will be executed before the first method of the current class is invoked.
+//@BeforeMethod	annotated method will be executed before each test method will run.
+//@BeforeGroups	annotated method run only once for a group before the execution of all test cases belonging to that group.
+
+//@AfterMethod	annotated method will run after the execution of each test method.
+//@AfterGroups	annotated method run only once for a group after the execution of all test cases belonging to that group.
+//@AfterClass	annotated method will be invoked after the execution of all the test methods of the current class.
+//@AfterTest	annotated method will be executed after the execution of all the test methods of available classes belonging to that folder.
+//@AfterSuite	annotated method will run after the execution of all the test methods in the suite.
 
 public class BankTest {
     private List<Person> people = new ArrayList<>();

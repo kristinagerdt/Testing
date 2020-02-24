@@ -4,6 +4,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+//@BeforeClass – Run once before any of the test methods in the class, public static void
+//@AfterClass – Run once after all the tests in the class have been run, public static void
+//@Before – Run before @Test, public void
+//@After – Run after @Test, public void
+//@Test – This is the test method to run, public void
 
 public class ValidatorTest {
     private Validator validator = new Validator();
